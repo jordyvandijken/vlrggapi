@@ -126,7 +126,7 @@ class Vlr:
                 score2 = team_array[-1].replace(" ", "").strip()
 
             stream = []
-            if eta == "LIVE" || eta == "Upcoming":
+            if (eta == "LIVE" or eta == "Upcoming"):
                 stream = Vlr.vlr_streams(url_path[1:])
 
             result.append(
