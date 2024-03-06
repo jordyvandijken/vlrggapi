@@ -125,6 +125,10 @@ class Vlr:
                 score1 = team_array[1].replace(" ", "").strip()
                 score2 = team_array[-1].replace(" ", "").strip()
 
+            stream = []
+            if eta == "LIVE" || eta == "Upcoming":
+                stream = Vlr.vlr_streams(url_path[1:])
+
             result.append(
                 {
                     "team1": team1,
@@ -137,13 +141,45 @@ class Vlr:
                     "round_info": rounds,
                     "tournament_name": tourney,
                     "match_page": url_path,
+                    "match_stream": stream,
                     "tournament_icon": tourney_icon_url,
                 }
             )
 
         return result
         
-        
+    @staticmethod
+    def vlr_streams(match):
+        # match-streams-container
+        url = "https://www.vlr.gg/" + str(match)
+        resp = requests.get(url, headers=headers)
+        html = HTMLParser(resp.text)
+        status = resp.status_code
+
+        result = []
+
+        for stream in html.css("div.match-streams-container .match-streams-btn"):
+            title = stream.css_first("span").text().strip();
+            
+            href = stream.css_first("a").attributes['href']
+            if href == "":
+                href = stream.attributes['href']
+
+            platform = href.split(".")[1]
+
+            result.append(
+                {
+                    "title": title,
+                    "href": href,
+                    "platform": platform,
+                }
+            )
+
+        data = {"status": status, "data": result}
+
+        if status != 200:
+            raise Exception("API response: {}".format(status))
+        return data
 
     @staticmethod
     def vlr_rankings(region):
