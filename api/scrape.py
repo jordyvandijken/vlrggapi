@@ -389,7 +389,7 @@ class Vlr:
 
         result = Vlr.get_match_info(html) 
 
-        for pageIndex in range(1, amountOfPages+1):
+        for pageIndex in range(2, amountOfPages+1):
             nextUrl = url + "?page=" + str(pageIndex)
             resp = requests.get(nextUrl, headers=headers)
             html = HTMLParser(resp.text)
