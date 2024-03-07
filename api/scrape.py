@@ -5,13 +5,23 @@ from selectolax.parser import HTMLParser
 
 import utils.utils as res
 from utils.utils import headers
-
+from urllib.parse import urlparse
 
 class Vlr:
     def __init__(self):
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0",
         }
+
+    def get_hostname(url):
+        hostname = urlparse(url).hostname
+        parts = hostname.split('.')
+        if len(parts) == 2: # If there's only one dot, take the first part
+            return parts[0]
+        elif len(parts) > 2: # If there are more than one dots, take the second part
+            return parts[1]
+        else:
+            return hostname # Return the hostname as is if no dots are found
 
     def get_parse(self, url):
         """
@@ -165,7 +175,7 @@ class Vlr:
             if href == "":
                 href = stream.attributes['href']
 
-            platform = href.split(".")[1]
+            platform = Vlr.get_hostname(href)
 
             result.append(
                 {
