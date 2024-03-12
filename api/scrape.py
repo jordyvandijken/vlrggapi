@@ -168,10 +168,17 @@ class Vlr:
 
         result = []
 
-        for stream in html.css("div.match-streams-container .match-streams-btn"):
-            title = stream.css_first("span").text().strip();
+        for stream in html.css("div.match-streams-container .match-streams-btn:not(.mod-expand)"):
+            span = stream.css_first("span")
+            if (span is not None):
+                title = span.text().strip();
+            else:
+                title = "";
             
-            href = stream.css_first("a").attributes['href']
+            link = stream.css_first("a")
+            if (link is not None):
+                href = link.attributes['href']
+                
             if href == "":
                 href = stream.attributes['href']
 
