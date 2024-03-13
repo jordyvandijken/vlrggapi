@@ -86,6 +86,7 @@ class Vlr:
     
     def get_match_info(html):
         result = []
+        print(1)
         for item in html.css("a.wf-module-item"):
 
             url_path = item.attributes['href']
@@ -102,10 +103,15 @@ class Vlr:
 
             rounds = item.css_first(".match-item-event-series").text().strip()
 
-            tourney = item.css_first(".match-item-event").text().strip()
-            tourney = tourney.replace("\t", " ")
-            tourney = tourney.strip().split("\n")[1]
-            tourney = tourney.strip()
+            print(item)
+            
+            tournamentItem = item.css_first(".match-item-event")
+            if (tournamentItem is not None):
+                tournament = tournamentItem.text().strip()
+                tournament = tournament.replace("\t", " ")
+                tournament = tournament.strip().split("\n")
+                if (len(tournament) > 1):
+                    tournament = tournament[1].strip()
 
             tourney_icon_url = item.css_first("img").attributes['src']
             tourney_icon_url = f"https:{tourney_icon_url}"
@@ -149,7 +155,7 @@ class Vlr:
                     "score2": score2,
                     "time_until_match": eta,
                     "round_info": rounds,
-                    "tournament_name": tourney,
+                    "tournament_name": tournament,
                     "match_page": url_path,
                     "match_stream": stream,
                     "tournament_icon": tourney_icon_url,
