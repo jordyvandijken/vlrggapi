@@ -2,11 +2,9 @@
 
 An Unofficial REST API for [vlr.gg](https://www.vlr.gg/), a site for Valorant Esports match and news coverage.
 
-Built by [Andre Saddler](https://github.com/axsddlr/)
-
 ## Current Endpoints
 
-All endpoints are relative to [https://vlrggapi.vercel.app](https://vlrggapi.vercel.app).
+All endpoints are relative to [https://vlrggapi-fawn.vercel.app](https://vlrggapi-fawn.vercel.app).
 
 ### `/news`
 
@@ -49,6 +47,16 @@ All endpoints are relative to [https://vlrggapi.vercel.app](https://vlrggapi.ver
                 "round_info": str,
                 "tournament_name": str,
                 "match_page": str,
+                "match_stream": {
+                  "status": 200,
+                  "data": [
+                    {
+                      "title": str,
+                      "href": str,
+                      "platform": str
+                    },
+                  ]
+                },
                 "tournament_icon": str
               }
           ],
@@ -112,12 +120,30 @@ All endpoints are relative to [https://vlrggapi.vercel.app](https://vlrggapi.ver
   }
   ```
 
+### `/match/streams/<match>`
+
+- Method: `GET`
+- Cached Time: 300 seconds (5 Minutes)
+- Response:
+  ```python
+  {
+      "status": 200,
+      "data": [
+          {
+            "title": str,
+            "href": str,
+            "platform": str
+          },
+      ]
+  }
+  ```
+
 ## Installation
 
 ### Source
 
 ```
-$ git clone https://github.com/axsddlr/vlrggapi/
+$ git clone https://github.com/jordyvandijken/vlrggapi/
 $ cd vlrggapi
 $ pip3 install -r requirements.txt
 ```
@@ -137,8 +163,11 @@ python3 main.py
 
 ## Contributing
 
-Feel free to submit a [pull request](https://github.com/axsddlr/vlrggapi/pull/new/master) or an [issue](https://github.com/axsddlr/vlrggapi/issues/new)!
+Feel free to submit a [pull request](https://github.com/jordyvandijken/vlrggapi/pull/new/master) or an [issue](https://github.com/jordyvandijken/vlrggapi/issues/new)!
 
 ## License
 
 The MIT License (MIT)
+
+## Original github
+[Andre Saddler](https://github.com/axsddlr/)
