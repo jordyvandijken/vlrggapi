@@ -1,5 +1,8 @@
 import uvicorn
 from fastapi import FastAPI, Request
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
+from fastapi_cache.decorator import cache
 
 from api.scrape import Vlr
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -19,26 +22,29 @@ app = FastAPI(
 )
 vlr = Vlr()
 
-TEN_MINUTES = 600
-
 # It's setting the rate limit for the API.
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")
+
 
 @app.get("/news")
+@cache(expire=300, namespace="vlrapi-news")
 @limiter.limit("250/minute")
 async def VLR_news(request: Request):
     return vlr.vlr_recent()
 
 
 @app.get("/match/results")
+@cache(expire=300, namespace="vlrapi-results")
 @limiter.limit("250/minute")
-async def VLR_scores(request: Request):
-    return vlr.vlr_score()
+async def VLR_results(request: Request):
+    return vlr.vlr_results()
 
 
 @app.get("/stats/{region}/{timespan}")
+@cache(expire=300, namespace="vlrapi-stats")
 @limiter.limit("250/minute")
 async def VLR_stats(region, timespan, request: Request):
     """
@@ -60,6 +66,7 @@ async def VLR_stats(region, timespan, request: Request):
 
 
 @app.get("/rankings/{region}")
+@cache(expire=300, namespace="vlrapi-rankings")
 @limiter.limit("250/minute")
 async def VLR_ranks(region, request: Request):
     """
@@ -81,22 +88,26 @@ async def VLR_ranks(region, request: Request):
 
 
 @app.get("/match/upcoming")
+@cache(expire=300, namespace="vlrapi-upcoming")
 @limiter.limit("250/minute")
 async def VLR_upcoming(request: Request):
     return vlr.vlr_upcoming()
 
 @app.get("/match/upcoming_index")
+@cache(expire=300, namespace="vlrapi-upcoming-index")
 @limiter.limit("250/minute")
 async def VLR_upcoming_index(request: Request):
     return vlr.vlr_upcoming_index()
 
 @app.get("/match/live_score")
+@cache(expire=300, namespace="vlrapi-live-score")
 @limiter.limit("250/minute")
 async def VLR_live_score(request: Request):
     return vlr.vlr_live_score()
 
 @app.get("/match/streams/{match}")
 @limiter.limit("250/minute")
+@cache(expire=300, namespace="vlrapi-streams")
 async def VLR_streams(match, request: Request):
     return vlr.vlr_streams(match)
 
@@ -105,6 +116,5 @@ async def VLR_streams(match, request: Request):
 def health():
     return "Healthy: OK"
 
-
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=3001)
+    uvicorn.run("main:app", host="0.0.0.0", port=3002)
