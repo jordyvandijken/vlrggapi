@@ -471,41 +471,24 @@ class Vlr:
         self.match_scraper = MatchScraper()
         self.stats_scraper = StatsScraper()
         self.ranking_scraper = RankingScraper()
-        # Initialize match results cache
-        self.results_cache = []
+        # Simple caching with timestamp
+        self.results_cache = None
         self.last_fetch_time = 0
-        self.cache_refresh_interval = 300  # Refresh cache every 5 minutes
+        self.cache_duration = 300  # 5 minutes cache
     
     def vlr_recent(self):
         """Get recent news."""
         return self.news_scraper.get_recent_news()
     
     def vlr_results(self):
-        """Get match results with efficient caching."""
+        """Get match results with simple caching."""
         import time
         current_time = time.time()
         
-        # If cache is empty or refresh interval has passed, update the cache
-        if not self.results_cache or (current_time - self.last_fetch_time) > self.cache_refresh_interval:
-            fresh_results = self.match_scraper.get_match_results()
-            
-            if not self.results_cache:
-                # First-time initialization
-                self.results_cache = fresh_results
-            else:
-                # Only add new matches that aren't already in our cache
-                # Using match_page as a unique identifier
-                existing_match_ids = {match["match_page"] for match in self.results_cache["data"]["segments"]}
-                
-                new_matches = []
-                for match in fresh_results["data"]["segments"]:
-                    if match["match_page"] not in existing_match_ids:
-                        new_matches.append(match)
-                
-                # Add new matches to the beginning of our cache
-                if new_matches:
-                    self.results_cache["data"]["segments"] = new_matches + self.results_cache["data"]["segments"]
-            
+        # Check if we need to refresh the cache
+        if self.results_cache is None or (current_time - self.last_fetch_time) >= self.cache_duration:
+            # Cache is empty or expired, get fresh data
+            self.results_cache = self.match_scraper.get_match_results()
             self.last_fetch_time = current_time
         
         return self.results_cache

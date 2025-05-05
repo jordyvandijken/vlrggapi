@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Lifespan event handler for the application.
     This replaces the deprecated on_event("startup") handler.
     """
-    # Startup: Initialize cache
+    # Startup: Initialize cache - simplest possible approach
     FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")
     
     yield  # This is where the application runs
@@ -188,4 +188,4 @@ app.openapi = custom_openapi
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=3002, reload=True)
+    uvicorn.run("main:app", host="localhost", port=3002, reload=True)
