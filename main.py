@@ -180,9 +180,6 @@ def custom_openapi():
         "url": "https://valorantesports.com/static/favicon-32x32.png"
     }
     
-    # Add security schemes if needed
-    # openapi_schema["components"]["securitySchemes"] = {...}
-    
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
