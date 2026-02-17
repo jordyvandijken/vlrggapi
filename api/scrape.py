@@ -6,7 +6,7 @@ from selectolax.parser import HTMLParser
 
 from api.base_scraper import BaseScraper
 from utils.constants import headers, region_map, BASE_URL, NEWS_URL, MATCHES_URL, RESULTS_URL, RANKINGS_URL
-from utils.helpers import get_hostname, clean_text, extract_flags
+from utils.helpers import get_hostname, clean_text, extract_flags, fetch_image_as_base64
 
 
 class NewsScraper(BaseScraper):
@@ -86,10 +86,10 @@ class MatchScraper(BaseScraper):
         return eta
     
     def _get_tournament_icon(self, item: Any) -> str:
-        """Extract tournament icon from match item."""
-        tournament_icon = item.css_first("img").attributes['src']
-        tournament_icon = f"https:{tournament_icon}"
-        return tournament_icon
+        """Extract tournament icon from match item and return as base64 data URI."""
+        src = item.css_first("img").attributes.get('src', '')
+        return fetch_image_as_base64(src)
+
     
     def _get_match_info(self, html: HTMLParser) -> List[Dict[str, Any]]:
         """Extract match information from HTML."""
@@ -222,8 +222,8 @@ class MatchScraper(BaseScraper):
             tourney = tourney.strip().split("\n")[1]
             tourney = tourney.strip()
             
-            tourney_icon_url = item.css_first("img").attributes['src']
-            tourney_icon_url = f"https:{tourney_icon_url}"
+            tourney_icon_src = item.css_first("img").attributes.get('src', '')
+            tourney_icon_url = fetch_image_as_base64(tourney_icon_src)
             
             try:
                 team_array = item.css_first("div.match-item-vs").css_first("div:nth-child(2)").text()
@@ -422,9 +422,10 @@ class RankingScraper(BaseScraper):
             team = item.css_first("div.ge-text").text()
             team = team.split("#")[0]
             
-            # Get logo URL
-            logo = item.css_first("a.rank-item-team").css_first("img").attributes['src']
-            logo = re.sub(r'\/img\/vlr\/tmp\/vlr.png', '', logo)
+# Get logo URL (convert to base64 data URI when available)
+            logo_src = item.css_first("a.rank-item-team").css_first("img").attributes.get('src', '')
+            logo_src = re.sub(r'\/img\/vlr\/tmp\/vlr.png', '', logo_src)
+            logo = fetch_image_as_base64(logo_src) if logo_src else ''
             
             # Get team country
             country = item.css_first("div.rank-item-team-country").text()
@@ -437,7 +438,8 @@ class RankingScraper(BaseScraper):
             last_played_team = last_played_team.replace('\t', '').replace('\n', '').split('o')[1]
             last_played_team = last_played_team.replace('.', '. ')
             
-            last_played_team_logo = item.css_first("a.rank-item-last").css_first("img").attributes['src']
+            last_played_team_logo_src = item.css_first("a.rank-item-last").css_first("img").attributes.get('src', '')
+            last_played_team_logo = fetch_image_as_base64(last_played_team_logo_src)
             
             # Get record and earnings
             record = clean_text(item.css_first("div.rank-item-record").text())
