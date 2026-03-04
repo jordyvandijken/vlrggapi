@@ -5,7 +5,7 @@ from selectolax.parser import HTMLParser
 
 from api.base_scraper import BaseScraper
 from utils.constants import headers, region_map, BASE_URL, NEWS_URL, MATCHES_URL, RESULTS_URL, RANKINGS_URL
-from utils.helpers import get_hostname, clean_text, extract_flags
+from utils.helpers import get_hostname, clean_text, extract_flags, fetch_image_as_base64
 
 
 class NewsScraper(BaseScraper):

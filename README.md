@@ -57,7 +57,7 @@ All endpoints are relative to [https://vlrggapi-fawn.vercel.app](https://vlrggap
                     },
                   ]
                 },
-                "tournament_icon": str
+                "tournament_icon": "base64 data URI (data:image/...)"
               }
           ],
       }
@@ -82,7 +82,7 @@ All endpoints are relative to [https://vlrggapi-fawn.vercel.app](https://vlrggap
                   'streak': str,
                   'record': str,
                   'winnings': str,
-                  'logo': str,
+                  'logo': 'base64 data URI (data:image/...)',
                   'url_path': str
               }
           ],
