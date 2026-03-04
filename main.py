@@ -1,4 +1,5 @@
 import uvicorn
+import httpx
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
@@ -24,10 +25,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Lifespan event handler for the application.
     This replaces the deprecated on_event("startup") handler.
     """
-    # Startup: Initialize cache - simplest possible approach
+    # Startup: Initialize cache and HTTP client
     FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")
     
-    yield  # This is where the application runs
+    # Create async HTTP client with timeout
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        app.state.http_client = client
+        yield  # This is where the application runs
 
 # Create FastAPI app with lifespan handler
 app = FastAPI(
@@ -61,7 +65,9 @@ async def get_news(request: Request):
     """
     Get recent news articles from VLR.GG
     """
-    return vlr.vlr_recent()
+    # Create a new client for this request to avoid timeout issues
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        return await vlr.vlr_recent(client)
 
 
 @app.get("/match/results", response_model=dict, tags=["Matches"])
@@ -71,7 +77,8 @@ async def get_match_results(request: Request):
     """
     Get recent match results
     """
-    return vlr.vlr_results()
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        return await vlr.vlr_results(client)
 
 
 @app.get("/stats/{region}/{timespan}", tags=["Statistics"])
@@ -91,7 +98,8 @@ async def get_player_stats(
     if timespan not in [30, 60, 90]:
         raise HTTPException(status_code=400, detail="Timespan must be 30, 60, or 90 days")
     
-    return vlr.vlr_stats(region, timespan)
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        return await vlr.vlr_stats(region, timespan, client)
 
 
 @app.get("/rankings/{region}", tags=["Rankings"])
@@ -118,7 +126,8 @@ async def get_team_rankings(
         - "br" -> "Brazil"
         - "cn" -> "china"
     """
-    return vlr.vlr_rankings(region)
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        return await vlr.vlr_rankings(region, client)
 
 
 @app.get("/match/upcoming", tags=["Matches"])
@@ -128,7 +137,8 @@ async def get_upcoming_matches(request: Request):
     """
     Get upcoming matches
     """
-    return vlr.vlr_upcoming()
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        return await vlr.vlr_upcoming(client)
 
 
 @app.get("/match/live_score", tags=["Matches"])
@@ -138,7 +148,8 @@ async def get_live_scores(request: Request):
     """
     Get live match scores
     """
-    return vlr.vlr_live_score()
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        return await vlr.vlr_live_score(client)
 
 
 @app.get("/match/streams/{match}", tags=["Streams"])
@@ -147,10 +158,10 @@ async def get_live_scores(request: Request):
 async def get_match_streams(match: str, request: Request):
     """
     Get streams for a specific match
-    
     - **match**: Match ID from VLR.GG
     """
-    return vlr.vlr_streams(match)
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        return await vlr.vlr_streams(match, client)
 
 
 @app.get('/health', tags=["System"])

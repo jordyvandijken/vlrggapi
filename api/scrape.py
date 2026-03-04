@@ -110,10 +110,9 @@ class MatchScraper(BaseScraper):
                 if len(tournament) > 1:
                     tournament = tournament[1].strip()
             
-            # Get streams if live or upcoming
+            # Note: Stream fetching is skipped here to avoid async/sync issues
+            # Streams can be fetched separately via the get_streams endpoint
             stream = []
-            if eta == "LIVE" or "Upcoming" in eta:
-                stream = self.get_streams(match_url[1:])
             
             result.append(
                 {
@@ -473,11 +472,11 @@ class Vlr:
         self.last_fetch_time = 0
         self.cache_duration = 300  # 5 minutes cache
     
-    def vlr_recent(self):
+    async def vlr_recent(self, client: httpx.AsyncClient):
         """Get recent news."""
-        return self.news_scraper.get_recent_news()
+        return await self.news_scraper.get_recent_news(client)
     
-    def vlr_results(self):
+    async def vlr_results(self, client: httpx.AsyncClient):
         """Get match results with simple caching."""
         import time
         current_time = time.time()
@@ -485,30 +484,30 @@ class Vlr:
         # Check if we need to refresh the cache
         if self.results_cache is None or (current_time - self.last_fetch_time) >= self.cache_duration:
             # Cache is empty or expired, get fresh data
-            self.results_cache = self.match_scraper.get_match_results()
+            self.results_cache = await self.match_scraper.get_match_results(client)
             self.last_fetch_time = current_time
         
         return self.results_cache
     
-    def vlr_stats(self, region: str, timespan: int):
+    async def vlr_stats(self, region: str, timespan: int, client: httpx.AsyncClient):
         """Get player stats."""
-        return self.stats_scraper.get_player_stats(region, timespan)
+        return await self.stats_scraper.get_player_stats(region, timespan, client)
     
-    def vlr_rankings(self, region: str):
+    async def vlr_rankings(self, region: str, client: httpx.AsyncClient):
         """Get team rankings."""
-        return self.ranking_scraper.get_rankings(region)
+        return await self.ranking_scraper.get_rankings(region, client)
     
-    def vlr_upcoming(self):
+    async def vlr_upcoming(self, client: httpx.AsyncClient):
         """Get upcoming matches."""
-        return self.match_scraper.get_upcoming_matches()
+        return await self.match_scraper.get_upcoming_matches(client)
     
-    def vlr_live_score(self):
+    async def vlr_live_score(self, client: httpx.AsyncClient):
         """Get live scores."""
-        return self.match_scraper.get_live_score()
+        return await self.match_scraper.get_live_score(client)
     
-    def vlr_streams(self, match: str):
+    async def vlr_streams(self, match: str, client: httpx.AsyncClient):
         """Get match streams."""
-        return self.match_scraper.get_streams(match)
+        return await self.match_scraper.get_streams(match, client)
 
 
 if __name__ == '__main__':
