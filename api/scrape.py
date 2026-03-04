@@ -1,5 +1,5 @@
 from typing import Dict, List, Any, Tuple
-import requests
+import httpx
 
 from selectolax.parser import HTMLParser
 
@@ -11,14 +11,14 @@ from utils.helpers import get_hostname, clean_text, extract_flags, fetch_image_a
 class NewsScraper(BaseScraper):
     """Scraper for VLR news articles."""
     
-    def get_recent_news(self) -> Dict[str, Any]:
+    async def get_recent_news(self, client: httpx.AsyncClient) -> Dict[str, Any]:
         """
         Get recent news articles from VLR.
         
         Returns:
             Dictionary containing news data
         """
-        html, status = self.get_parse(NEWS_URL)
+        html, status = await self.get_parse(NEWS_URL, client)
         result = []
         
         for item in html.css('a.wf-module-item'):
@@ -134,10 +134,10 @@ class MatchScraper(BaseScraper):
         
         return result
     
-    def get_streams(self, match: str) -> Dict[str, Any]:
+    async def get_streams(self, match: str, client: httpx.AsyncClient) -> Dict[str, Any]:
         """Get stream information for a match."""
         url = f"{BASE_URL}/{match}"
-        resp = requests.get(url, headers=headers)
+        resp = await client.get(url, headers=headers)
         html = HTMLParser(resp.text)
         status = resp.status_code
         
@@ -172,10 +172,10 @@ class MatchScraper(BaseScraper):
         self.check_status(status)
         return data
     
-    def get_upcoming_matches(self) -> Dict[str, Any]:
+    async def get_upcoming_matches(self, client: httpx.AsyncClient) -> Dict[str, Any]:
         """Get upcoming matches."""
         url = MATCHES_URL
-        resp = requests.get(url, headers=headers)
+        resp = await client.get(url, headers=headers)
         html = HTMLParser(resp.text)
         status = resp.status_code
         
@@ -185,7 +185,7 @@ class MatchScraper(BaseScraper):
         
         for page_index in range(2, amount_of_pages + 1):
             next_url = f"{url}?page={page_index}"
-            resp = requests.get(next_url, headers=headers)
+            resp = await client.get(next_url, headers=headers)
             html = HTMLParser(resp.text)
             status = resp.status_code
             result += self._get_match_info(html)
@@ -197,10 +197,10 @@ class MatchScraper(BaseScraper):
         self.check_status(status)
         return data
     
-    def get_match_results(self) -> Dict[str, Any]:
+    async def get_match_results(self, client: httpx.AsyncClient) -> Dict[str, Any]:
         """Get match results."""
         url = RESULTS_URL
-        resp = requests.get(url, headers=headers)
+        resp = await client.get(url, headers=headers)
         html = HTMLParser(resp.text)
         status = resp.status_code
         
@@ -262,10 +262,10 @@ class MatchScraper(BaseScraper):
         self.check_status(status)
         return data
     
-    def get_live_score(self) -> Dict[str, Any]:
+    async def get_live_score(self, client: httpx.AsyncClient) -> Dict[str, Any]:
         """Get live match scores."""
         url = BASE_URL
-        resp = requests.get(url, headers=headers)
+        resp = await client.get(url, headers=headers)
         html = HTMLParser(resp.text)
         status = resp.status_code
         
@@ -325,13 +325,14 @@ class MatchScraper(BaseScraper):
 class StatsScraper(BaseScraper):
     """Scraper for VLR player statistics."""
     
-    def get_player_stats(self, region: str, timespan: int) -> Dict[str, Any]:
+    async def get_player_stats(self, region: str, timespan: int, client: httpx.AsyncClient) -> Dict[str, Any]:
         """
         Get player statistics.
         
         Args:
             region: Region code
             timespan: Timespan in days
+            client: Async HTTP client
             
         Returns:
             Dictionary containing player stats
@@ -339,7 +340,7 @@ class StatsScraper(BaseScraper):
         url = (f"{BASE_URL}/stats/?event_group_id=all&event_id=all&region={region}&country=all&min_rounds=200"
                f"&min_rating=1550&agent=all&map_id=all&timespan={timespan}d")
         
-        resp = requests.get(url, headers=headers)
+        resp = await client.get(url, headers=headers)
         html = HTMLParser(resp.text)
         status = resp.status_code
         
