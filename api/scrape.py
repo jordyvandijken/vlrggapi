@@ -395,18 +395,19 @@ class StatsScraper(BaseScraper):
 class RankingScraper(BaseScraper):
     """Scraper for VLR team rankings."""
     
-    def get_rankings(self, region: str) -> Dict[str, Any]:
+    async def get_rankings(self, region: str, client: httpx.AsyncClient) -> Dict[str, Any]:
         """
         Get team rankings.
         
         Args:
             region: Region code
+            client: Async HTTP client
             
         Returns:
             Dictionary containing team rankings
         """
         url = f"{RANKINGS_URL}/{region_map[region]}"
-        resp = requests.get(url, headers=headers)
+        resp = await client.get(url, headers=headers)
         html = HTMLParser(resp.text)
         status = resp.status_code
         
